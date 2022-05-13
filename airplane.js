@@ -39,7 +39,7 @@ class Airplane
         }
 
         if (keys["w"] || keys["s"]) {
-            var direction = keys["w"] ? 1 : -1;
+            var direction = keys["s"] ? 1 : -1;
             this.turnPitchSpeed = 0.0007 * direction;
         } 
         else {
@@ -49,7 +49,7 @@ class Airplane
         this.plane.rotation[2] += this.turnRollSpeed * deltaTime;
         this.plane.rotation[0] += this.turnPitchSpeed * deltaTime;
 
-        var y = Math.sin(this.plane.rotation[0])
+        var y = -Math.sin(this.plane.rotation[0])
         var x = Math.sin(this.plane.rotation[1])*Math.cos(this.plane.rotation[0])
         var z = Math.cos(this.plane.rotation[1])*Math.cos(this.plane.rotation[0])
 

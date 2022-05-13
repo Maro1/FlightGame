@@ -102,34 +102,14 @@ class Model {
     constructor(filepath) {
         this.mesh = new Mesh(filepath)
         this.textures = this.#loadTextures(filepath);
-
-
     }
 
     #loadTextures(filepath) {
         var texturePath = filepath.substring(0, filepath.indexOf(".obj"));
-        var diffuse_texture = this.#loadTexture(texturePath.concat("_diffuse.png"))
-        var specular_texture = this.#loadTexture(texturePath.concat("_specular.png"))
+        var diffuse_texture = new Texture(texturePath.concat("_diffuse.png"), gl.TEXTURE_2D);
+        var specular_texture = new Texture(texturePath.concat("_specular.png"), gl.TEXTURE_2D);
 
         return [diffuse_texture, specular_texture];
-    }
-
-    #loadTexture(filepath) {
-        var texture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-            new Uint8Array([0, 0, 0, 255]));
-
-        var diffuseImage = new Image();
-        diffuseImage.src = filepath;
-        diffuseImage.addEventListener("load", () => {
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-                diffuseImage);
-            gl.generateMipmap(gl.TEXTURE_2D);
-        });
-        return texture;
     }
 
     draw() {
@@ -140,10 +120,10 @@ class Model {
         gl.uniform1i(specularLocation, 1);
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, this.textures[0]);
+        this.textures[0].bind();
 
         gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, this.textures[1]);
+        this.textures[1].bind();
 
         this.mesh.draw();
     }

@@ -4,7 +4,7 @@ class Camera extends Actor
         super();
 
         this.position = [0.0, 0.0, -5.0];
-        this.rotation = [0.0, 0.0, 0.0];
+        this.rotation = [0.0, Math.PI, 0.0];
 
         this.aspect = aspect;
 

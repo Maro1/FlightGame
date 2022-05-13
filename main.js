@@ -8,6 +8,7 @@ var camera;
 var airplane;
 var light;
 var terrain;
+var skybox;
 var shaderProgram;
 var prev_time = 0;
 var keys = {};
@@ -42,6 +43,8 @@ function init()
 
     light = new Light([2.0, 2.0, 4.0]);
 
+    skybox = new Skybox("data/skybox");
+
     var terrain_model = new Model("data/terrain/terrain.obj");
     terrain = new Actor();
     terrain.model = terrain_model;
@@ -74,6 +77,8 @@ function run(now)
     light.position[2] = 2 * Math.sin(now * 0.001);
 
     light.draw(camera.projMatrix(), camera.viewMatrix());
+
+    skybox.draw(camera.viewMatrix(), camera.projMatrix());
 
     prev_time = now;
     window.requestAnimationFrame(run); 
