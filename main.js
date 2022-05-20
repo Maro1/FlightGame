@@ -12,8 +12,6 @@ var skybox;
 var shaderProgram;
 var prev_time = 0;
 var keys = {};
-var mouseDown = false;
-
 
 function init()
 {
@@ -25,11 +23,11 @@ function init()
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.2, 0.2, 0.2, 1.0);
     gl.enable(gl.DEPTH_TEST);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     
     camera = new Camera(canvas.width / canvas.height);
     document.addEventListener("keydown", (e) => {
       keys[e.key] = true;
+      camera.keyDown(e.key);
     });
 
     document.addEventListener("keyup", (e) => {
@@ -48,8 +46,8 @@ function init()
     var terrain_model = new Model("data/terrain/terrain.obj");
     terrain = new Actor();
     terrain.model = terrain_model;
-    terrain.position = [0.0, -10.0, 0.0];
-
+    terrain.scale(20, 20, 20);
+    terrain.translate(0.0, -50.0, 0.0);
 }
 
 function run(now)
@@ -67,7 +65,7 @@ function run(now)
     gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "view"), false, camera.viewMatrix());
     gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "proj"), false, camera.projMatrix());
 
-    gl.uniform3f(gl.getUniformLocation(shaderProgram, "camPos"), camera.worldPos()[0], camera.worldPos()[1], camera.worldPos()[2]);
+    gl.uniform3f(gl.getUniformLocation(shaderProgram, "viewPos"), camera.worldPos()[0], camera.worldPos()[1], camera.worldPos()[2]);
     gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightPos"), light.position[0], light.position[1], light.position[2]);
 
     airplane.update(dt);
@@ -76,9 +74,9 @@ function run(now)
     light.position[0] = 2 * Math.cos(now * 0.001);
     light.position[2] = 2 * Math.sin(now * 0.001);
 
-    light.draw(camera.projMatrix(), camera.viewMatrix());
-
     skybox.draw(camera.viewMatrix(), camera.projMatrix());
+    
+    light.draw(camera.projMatrix(), camera.viewMatrix());
 
     prev_time = now;
     window.requestAnimationFrame(run); 

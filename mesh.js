@@ -19,7 +19,6 @@ class Mesh {
 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
             gl.drawArrays(gl.TRIANGLES, 0, this.mesh.nface * 3);
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         }
     }
 
@@ -115,9 +114,11 @@ class Model {
     draw() {
         var diffuseLocation = gl.getUniformLocation(shaderProgram, "diffuseMap");
         var specularLocation = gl.getUniformLocation(shaderProgram, "specularMap");
+        var skyboxLocation = gl.getUniformLocation(shaderProgram, "skybox");
 
         gl.uniform1i(diffuseLocation, 0);
         gl.uniform1i(specularLocation, 1);
+        gl.uniform1i(skyboxLocation, 2);
 
         gl.activeTexture(gl.TEXTURE0);
         this.textures[0].bind();
@@ -125,6 +126,10 @@ class Model {
         gl.activeTexture(gl.TEXTURE1);
         this.textures[1].bind();
 
+        if (skybox.texture != undefined) {
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, skybox.texture);
+        }
         this.mesh.draw();
     }
 }
@@ -133,66 +138,20 @@ class Actor
 {
 
     constructor() {
-        this.position = new Float32Array([0, 0, 0]);
-        this.rotation = new Float32Array([0, 0, 0]);
-        this.scale = new Float32Array([1, 1, 1]);
+        this.transform = m4.identity();
         this.parent = undefined;
         this.children = [];
         this.model = undefined;
-
-        if (this.parent != undefined) {
-            this.worldTransform = m4.multiply(this.parent.transform(), this.transform());
-        }
-        else {
-            this.worldTransform = this.transform();
-        }
-    }
-
-    transform() {
-        var modelMat = m4.identity();
-        modelMat = m4.translate(modelMat, this.position[0], this.position[1], this.position[2]);
-        modelMat = m4.xRotate(modelMat, this.rotation[0]);
-        modelMat = m4.yRotate(modelMat, this.rotation[1]);
-        modelMat = m4.zRotate(modelMat, this.rotation[2]);
-        modelMat = m4.scale(modelMat, this.scale[0], this.scale[1], this.scale[2]);
-
-        return modelMat;
-    }
-
-    worldPos()
-    {
-        if (this.parent != undefined) {
-            return m4.addVectors(this.parent.worldPos(), this.position);
-        }
-        else {
-            return this.position;
-        }
-    }
-
-    worldRot()
-    {
-        if (this.parent != undefined) {
-            return m4.addVectors(this.parent.worldRot(), this.rotation);
-        }
-        else {
-            return this.rotation;
-        }
     }
 
     update(deltaTime) {
-        if (this.parent != undefined) {
-            this.worldTransform = m4.multiply(this.parent.transform(), this.transform());
-        }
-        else {
-            this.worldTransform = this.transform();
-        }
         this.children.forEach(c => c.update(deltaTime));
 
 
-        var invModel = m4.inverse(this.worldTransform);
+        var invModel = m4.inverse(this.worldTransform());
         var transInvModel = m4.transpose(invModel);
 
-        gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "model"), false, this.worldTransform);
+        gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "model"), false, this.worldTransform());
         gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transInvModel"), false, transInvModel);
 
         this.#draw();
@@ -201,6 +160,45 @@ class Actor
     addChild(child) {
         this.children.push(child);
         child.parent = this;
+    }
+
+    worldTransform() {
+        if (this.parent != undefined) {
+            return m4.multiply(this.parent.transform, this.transform);
+        }
+        else {
+            return this.transform;
+        }
+    }
+
+    right() {
+        return new Float32Array([-this.worldTransform()[0], -this.worldTransform()[1], -this.worldTransform()[2]]);
+    }
+
+    forward() {
+        return new Float32Array([this.worldTransform()[8], this.worldTransform()[9], this.worldTransform()[10]]);
+    }
+
+    worldPos() {
+        return new Float32Array([this.worldTransform()[12], this.worldTransform()[13], this.worldTransform()[14]]);
+    }
+
+    setPosition(x, y, z) {
+        this.transform[12] = x;
+        this.transform[13] = y;
+        this.transform[14] = z;
+    }
+
+    translate(dX, dY, dZ) {
+        this.transform = m4.translate(this.transform, dX, dY, dZ);
+    }
+
+    scale(x, y, z) {
+        this.transform = m4.scale(this.transform, x, y, z);
+    }
+
+    rotate(axis, angle) {
+        this.transform = m4.axisRotate(this.transform, axis, angle);
     }
 
     #draw() {

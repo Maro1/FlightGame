@@ -3,8 +3,12 @@ class Camera extends Actor
     constructor(aspect) {
         super();
 
-        this.position = [0.0, 0.0, -5.0];
-        this.rotation = [0.0, Math.PI, 0.0];
+        this.translate(0.0, 0.0, -5.0);
+        this.rotate([0.0, 1.0, 0.0], Math.PI);
+        
+        //this.translate(0.0, 1.5, -5.0);
+        //this.rotate([0.0, 1.0, 0.0], Math.PI);
+        //this.rotate([-1.0, 0.0, 0.0], Math.PI / 16);
 
         this.aspect = aspect;
 
@@ -15,56 +19,21 @@ class Camera extends Actor
 
     viewMatrix()
     {
-        var viewMat = m4.identity();
-        viewMat = m4.xRotate(viewMat, -this.worldRot()[0]);
-        viewMat = m4.yRotate(viewMat, -this.worldRot()[1]);
-        viewMat = m4.zRotate(viewMat, -this.worldRot()[2]);
-
-        viewMat = m4.translate(viewMat, -this.worldPos()[0], -this.worldPos()[1], -this.worldPos()[2]);
-        return viewMat;
+        return m4.inverse(this.worldTransform());
     }
 
     projMatrix()
     {
-        return m4.perspective(0.7, this.aspect, 0.1, 10000);
+        return m4.perspective(0.7, this.aspect, 0.1, 100000);
     }
 
-    update(keys, dt)
-    {
-        // Forward/backward
-        //if (keys["w"] || keys["s"]) {
-        //    var direction = keys["w"] ? 1 : -1;
-        //    this.position[0] += this.front[0] * this.moveSpeed * direction * dt;
-        //    this.position[1] += this.front[1] * this.moveSpeed * direction * dt;
-        //    this.position[2] += this.front[2] * this.moveSpeed * direction * dt;
-        //} 
-        // Left/right 
-        //if (keys["d"] || keys["a"]) {
-        //    var right= m4.cross(this.front, this.up);
-        //    var direction = keys["d"] ? 1 : -1;
-        //    this.position[0] += right[0] * this.moveSpeed * direction * dt;
-        //    this.position[1] += right[1] * this.moveSpeed * direction * dt;
-        //    this.position[2] += right[2] * this.moveSpeed * direction * dt;
-        //} 
+    nextView() {
+        this.setPosition(0.0, 1.5, -10.0);
     }
 
-    //mouseMoved(e) {
-    //    if (this.firstMove) {
-    //        this.firstMove = false;
-    //        this.prevX = e.offsetX;
-    //        this.prevY = e.offsetY;
-    //        return;
-    //    }
-    //    var x = this.prevX - e.offsetX;
-    //    var y = this.prevY - e.offsetY;
-
-    //    var rotation = m4.identity();
-    //    rotation = m4.yRotate(rotation, x * this.lookSpeed);
-    //    rotation = m4.xRotate(rotation, y * this.lookSpeed);
-
-    //    this.front = m4.transformVector(rotation, new Float32Array([this.front[0], this.front[1], this.front[2], 1])).slice(0, 3);
-    //    this.prevX = e.offsetX;
-    //    this.prevY = e.offsetY;
-    //}
-
+    keyDown(key) {
+        if (key == "c") {
+            this.nextView();
+        }
+    }
 }
