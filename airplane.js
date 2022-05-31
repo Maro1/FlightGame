@@ -1,6 +1,9 @@
 const MAX_ROLL = Math.PI / 4;
 const MAX_PITCH = Math.PI / 8;
 
+const MAX_SPEED = 5.0;
+const MIN_SPEED = 0.5;
+
 class Airplane {
 
     constructor() {
@@ -25,9 +28,17 @@ class Airplane {
     update(deltaTime) {
         const amortization = 0.96;
 
-        this.propeller.rotate([0.0, 0.0, 1.0], deltaTime * this.speed);
-        if (keys["d"] || keys["a"]) {
+        this.propeller.rotate([0.0, 0.0, 1.0], deltaTime * this.speed * 0.01);
 
+        if (keys["+"] && this.speed < MAX_SPEED) {
+            this.speed += 0.001 * deltaTime;
+        }
+
+        if (keys["-"] && this.speed > MIN_SPEED) {
+            this.speed -= 0.001 * deltaTime;
+        }
+
+        if (keys["d"] || keys["a"]) {
             var direction = keys["d"] ? 1 : -1;
             this.turnRollSpeed = 0.0007 * direction;
         }
@@ -52,5 +63,10 @@ class Airplane {
         this.plane.translate(0, 0, this.speed);
 
         this.plane.update();
+    }
+
+    draw() {
+        this.plane.draw();
+        this.propeller.draw();
     }
 }

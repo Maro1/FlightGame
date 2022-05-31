@@ -126,9 +126,9 @@ class Model {
         gl.activeTexture(gl.TEXTURE1);
         this.textures[1].bind();
 
-        if (skybox.texture != undefined) {
+        if (scene.skybox.texture != undefined) {
             gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, skybox.texture);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, scene.skybox.texture);
         }
         this.mesh.draw();
     }
@@ -146,9 +146,6 @@ class Actor
 
     update(deltaTime) {
         this.children.forEach(c => c.update(deltaTime));
-
-
-        this.#draw();
     }
 
     addChild(child) {
@@ -195,7 +192,7 @@ class Actor
         this.transform = m4.axisRotate(this.transform, axis, angle);
     }
 
-    #draw() {
+    draw() {
         if (this.model != undefined) {
             var invModel = m4.inverse(this.worldTransform());
             var transInvModel = m4.transpose(invModel);

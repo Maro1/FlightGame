@@ -12,6 +12,15 @@ class Camera extends Actor
         this.moveSpeed = 0.01;
         this.lookSpeed = 0.002;
         this.firstMove = true;
+
+        document.addEventListener("keydown", (e) => {
+          keys[e.key] = true;
+          this.keyDown(e.key);
+        });
+
+        document.addEventListener("keyup", (e) => {
+          keys[e.key] = false;
+        });
     }
 
     viewMatrix()

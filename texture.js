@@ -152,6 +152,7 @@ class ShadowMap
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
 
     const unused = gl.createTexture(); 
+    gl.bindTexture(gl.TEXTURE_2D, unused);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -162,15 +163,14 @@ class ShadowMap
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
-  draw(actors) {
-    gl.bindTexture(this.target, this.texture);
-    //gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+  bind() {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
 
-    //gl.viewport(0, 0, this.size, this.size);
-    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.viewport(0, 0, this.size, this.size);
+  }
 
-    //actors.forEach(a => a.draw());
-
-    //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  unbind() {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
   }
 }

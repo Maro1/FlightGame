@@ -4,13 +4,7 @@ var canvas;
 /** @type {WebGLRenderingContext} */
 var gl;
 
-var camera;
-var actors = [];
-var airplane;
-var terrain;
-var water;
-var skybox;
-var shadowMap;
+var scene;
 var shaderProgram;
 var prev_time = 0;
 var keys = {};
@@ -31,41 +25,17 @@ function init()
 
     makeGUI();
     
-    camera = new Camera(canvas.width / canvas.height);
-    document.addEventListener("keydown", (e) => {
-      keys[e.key] = true;
-      camera.keyDown(e.key);
-    });
-
-    document.addEventListener("keyup", (e) => {
-      keys[e.key] = false;
-    });
-
     shaderProgram = webglUtils.createProgramFromScripts(gl, ["vertex-shader", "fragment-shader"]);
-    shadowMap = new ShadowMap(512);
 
-    airplane = new Airplane();
-    airplane.plane.addChild(camera);
+    scene = new Scene();
 
-    skybox = new Skybox("data/skybox");
-
-    var terrain_model = new Model("data/terrain/terrain.obj");
-    terrain = new Actor();
-    terrain.model = terrain_model;
+    var terrain = scene.addActorFromModel("data/terrain/terrain.obj");
     terrain.scale(10, 10, 10);
     terrain.translate(0.0, -50.0, 0.0);
 
-    var water_model = new Model("data/water/water.obj");
-    water = new Actor();
-    water.model = water_model;
+    var water = scene.addActorFromModel("data/water/water.obj");
     water.scale(3000, 1000, 4000);
     water.translate(-0.2, -0.55, 0.0);
-
-    actors.push(terrain);
-    actors.push(water);
-    actors.push(airplane.plane);
-    actors.push(airplane.propeller);
-
 }
 
 function run(now)
@@ -75,26 +45,15 @@ function run(now)
     }
     var dt = now - prev_time; 
 
+    scene.update(dt);
+    scene.draw();
 
+    //shadowMap.draw(actors);
 
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.DEPTH_TEST);
+    //airplane.update(dt);
+    //terrain.update(dt);
+    //water.update(dt);
 
-    gl.useProgram(shaderProgram);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "view"), false, camera.viewMatrix());
-    gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "proj"), false, camera.projMatrix());
-
-    gl.uniform3f(gl.getUniformLocation(shaderProgram, "viewPos"), camera.worldPos()[0], camera.worldPos()[1], camera.worldPos()[2]);
-    gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightDir"), 0.53, 0.76, -0.37);
-
-    shadowMap.draw(actors);
-
-    airplane.update(dt);
-    terrain.update(dt);
-    water.update(dt);
-
-    skybox.draw(camera.viewMatrix(), camera.projMatrix());
 
     prev_time = now;
     window.requestAnimationFrame(run); 
