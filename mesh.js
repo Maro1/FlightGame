@@ -148,12 +148,6 @@ class Actor
         this.children.forEach(c => c.update(deltaTime));
 
 
-        var invModel = m4.inverse(this.worldTransform());
-        var transInvModel = m4.transpose(invModel);
-
-        gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "model"), false, this.worldTransform());
-        gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transInvModel"), false, transInvModel);
-
         this.#draw();
     }
 
@@ -203,6 +197,12 @@ class Actor
 
     #draw() {
         if (this.model != undefined) {
+            var invModel = m4.inverse(this.worldTransform());
+            var transInvModel = m4.transpose(invModel);
+
+            gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "model"), false, this.worldTransform());
+            gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transInvModel"), false, transInvModel);
+
             this.model.draw();
         }
     }

@@ -3,12 +3,9 @@ class Camera extends Actor
     constructor(aspect) {
         super();
 
-        this.translate(0.0, 0.0, -5.0);
+        this.translate(0.0, 1.5, -5.0);
         this.rotate([0.0, 1.0, 0.0], Math.PI);
-        
-        //this.translate(0.0, 1.5, -5.0);
-        //this.rotate([0.0, 1.0, 0.0], Math.PI);
-        //this.rotate([-1.0, 0.0, 0.0], Math.PI / 16);
+        this.rotate([-1.0, 0.0, 0.0], Math.PI / 16);
 
         this.aspect = aspect;
 
