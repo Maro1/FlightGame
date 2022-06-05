@@ -38,7 +38,7 @@ class Airplane {
             this.speed -= 0.001 * deltaTime;
         }
 
-        if (keys["d"] || keys["a"]) {
+        if ((keys["d"] || keys["a"]) && !g_options.OrbitMode) {
             var direction = keys["d"] ? 1 : -1;
             this.turnRollSpeed = 0.0007 * direction;
         }
@@ -46,7 +46,7 @@ class Airplane {
             this.turnRollSpeed *= amortization;
         }
 
-        if (keys["w"] || keys["s"]) {
+        if (keys["w"] || keys["s"] && !g_options.OrbitMode) {
             var direction = keys["w"] ? 1 : -1;
             this.turnPitchSpeed = 0.0007 * direction;
         }

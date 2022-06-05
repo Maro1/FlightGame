@@ -4,6 +4,25 @@ var canvas;
 /** @type {WebGLRenderingContext} */
 var gl;
 
+var g_options = {
+    Shadows: true,
+    NormalMap: true,
+    Fog: true,
+    FogAmount: 0.5,
+    FOV: 45,
+    OrbitMode: false,
+}
+
+function makeGUI() {
+    const gui = new dat.GUI();
+    gui.add(g_options, "Shadows");
+    gui.add(g_options, "NormalMap");
+    gui.add(g_options, "Fog");
+    gui.add(g_options, "FogAmount", 0.0, 1);
+    gui.add(g_options, "FOV");
+    gui.add(g_options, "OrbitMode");
+}
+
 var scene;
 var shaderProgram;
 var prev_time = 0;
@@ -38,7 +57,7 @@ function init()
     water.translate(0.0, 0, 0.0);
 
     scene.airplane.plane.translate(0, 100, -5000);
-    scene.airplane.plane.scale(0.1, 0.1, 0.1);
+    scene.airplane.plane.scale(0.5, 0.5, 0.5);
 }
 
 function run(now)
@@ -48,9 +67,8 @@ function run(now)
     }
     var dt = now - prev_time; 
 
-    let options = guiOptions();
     scene.update(dt);
-    scene.draw(options);
+    scene.draw();
 
     prev_time = now;
     window.requestAnimationFrame(run); 

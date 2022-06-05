@@ -30,6 +30,8 @@
 
             varying mat3 TBN;
 
+            varying vec3 v_Pos;
+
             uniform mat4 model;
             uniform mat4 view;
             uniform mat4 proj;
@@ -49,6 +51,8 @@
                 vec3 N = normalize(vec3(model * vec4(a_Normal,    0.0)));
                 TBN = mat3(T, B, N);
 
+                v_Pos = (view * model * vec4(a_Pos, 1.0)).xyz;
+
                 gl_Position = proj * view * model * vec4(a_Pos, 1.0); 
             }
         </script>
@@ -63,6 +67,8 @@
 
             varying mat3 TBN;
 
+            varying vec3 v_Pos;
+
             uniform sampler2D diffuseMap;
             uniform sampler2D specularMap;
             uniform sampler2D normalMap;
@@ -74,6 +80,9 @@
             uniform vec3 lightDir; 
 
             uniform int useShadows;
+            uniform int useNormalMap;
+
+            uniform float fogAmount;
 
             float shadow()
             {
@@ -93,9 +102,15 @@
             }
 
             void main() {
-                vec3 normal = texture2D(normalMap, v_TexCoord).rgb;
-                normal = 2.0 * normal - 1.0;
-                normal = normalize(TBN * normal);
+                vec3 normal;
+                if (useNormalMap == 1) {
+                    normal = texture2D(normalMap, v_TexCoord).rgb;
+                    normal = 2.0 * normal - 1.0;
+                    normal = normalize(TBN * normal);
+                }
+                else {
+                    normal = normalize(v_Normal);
+                }
 
                 vec3 kD = texture2D(diffuseMap, v_TexCoord).rgb;
                 vec3 kS = texture2D(specularMap, v_TexCoord).rgb;
@@ -109,7 +124,15 @@
 
                 vec3 specular = kS * textureCube(skybox, reflectDir).rgb * pow(max(dot(viewDir, reflectDir), 0.0), 16.0);;
 
-                gl_FragColor = vec4(ambient + shadow() * (diffuse + specular), 1.0);
+                vec4 color = vec4(ambient + shadow() * (diffuse + specular), 1.0);
+
+                if (fogAmount != 0.0) {
+                    float fog = smoothstep((1.0 - fogAmount) * 10000.0, (1.0 - fogAmount) * 20000.0, length(v_Pos));
+                    gl_FragColor = mix(color, vec4(0.8, 0.9, 1.0, 1.0), fog);
+                }
+                else {
+                    gl_FragColor = color;
+                }
             }
         </script>
     <script id="shadow-vs" type="x-shader/x-vertex">
@@ -149,15 +172,24 @@
     <script id="skybox-fs" type="x-shader/x-fragment">
             precision mediump float;
 
+            varying vec4 fPosition;
+
             uniform samplerCube skybox;
             uniform mat4 viewProjInv;
+            uniform float fogAmount;
 
-            varying vec4 fPosition;
 
             void main() 
             {
                 vec4 t = viewProjInv * fPosition;
-                gl_FragColor = textureCube(skybox, normalize(t.xyz / t.w));
+
+                vec4 color = textureCube(skybox, normalize(t.xyz / t.w));
+                if (fogAmount == 0.0) {
+                    gl_FragColor = color;
+                }
+                else {
+                    gl_FragColor = mix(color, vec4(0.8, 0.9, 1.0, 1.0), pow((1.0 - t.y), 1.0 / fogAmount));
+                }
             }
         </script>
     <script type="text/javascript" src="resources/mesh_utils.js"></script>
@@ -172,7 +204,6 @@
     <script type="text/javascript" src="camera.js"></script>
     <script type="text/javascript" src="airplane.js"></script>
     <script type="text/javascript" src="scene.js"></script>
-    <script type="text/javascript" src="gui.js"></script>
     <script type="text/javascript" src="main.js"></script>
 </body>
 

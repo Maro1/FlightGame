@@ -63,6 +63,13 @@ class Skybox {
     viewProjInv = m4.multiply(proj, viewProjInv);
     viewProjInv = m4.inverse(viewProjInv);
 
+    if (g_options.Fog) {
+      gl.uniform1f(gl.getUniformLocation(this.skyboxShader, "fogAmount"), g_options.FogAmount);
+    }
+    else {
+      gl.uniform1f(gl.getUniformLocation(this.skyboxShader, "fogAmount"), 0.0);
+    }
+
     gl.uniformMatrix4fv(
         gl.getUniformLocation(this.skyboxShader, 'viewProjInv'), false,
         viewProjInv);

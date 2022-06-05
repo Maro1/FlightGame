@@ -30,8 +30,8 @@ class Scene
         this.lightPos = [this.airplane.plane.position()[0], this.lightPos[1], this.airplane.plane.position()[2]];
     }
 
-    draw(options) {
-        if (options.Shadows) {
+    draw() {
+        if (g_options.Shadows) {
             gl.cullFace(gl.FRONT);
             this.shadowMap.bind();
             this.#draw(true);
@@ -39,10 +39,10 @@ class Scene
         }
 
         this.shadowMap.unbind();
-        this.#draw(false, options);
+        this.#draw(false);
     }
 
-    #draw(shadowMap, options) {
+    #draw(shadowMap) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.DEPTH_TEST);
 
@@ -67,15 +67,30 @@ class Scene
 
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "lightSpaceMatrix"), false, lightSpace);
 
-            if (options.Shadows) {
+            if (g_options.Shadows) {
                 gl.uniform1i(gl.getUniformLocation(shaderProgram, "useShadows"), 1);
-            }
-            else {
-                gl.uniform1i(gl.getUniformLocation(shaderProgram, "useShadows"), 0);
                 var shadowMapLocation = gl.getUniformLocation(shaderProgram, "shadowMap");
                 gl.uniform1i(shadowMapLocation, 3);
                 gl.activeTexture(gl.TEXTURE3);
                 gl.bindTexture(gl.TEXTURE_2D, this.shadowMap.depthTexture);
+            }
+            else {
+                gl.uniform1i(gl.getUniformLocation(shaderProgram, "useShadows"), 0);
+            }
+
+            if (g_options.NormalMap) {
+                gl.uniform1i(gl.getUniformLocation(shaderProgram, "useNormalMap"), 1);
+            }
+            else {
+                gl.uniform1i(gl.getUniformLocation(shaderProgram, "useNormalMap"), 0);
+            }
+
+
+            if (g_options.Fog) {
+                gl.uniform1f(gl.getUniformLocation(shaderProgram, "fogAmount"), g_options.FogAmount);
+            }
+            else {
+                gl.uniform1f(gl.getUniformLocation(shaderProgram, "fogAmount"), 0.0);
             }
 
             this.actors.forEach(function(a){

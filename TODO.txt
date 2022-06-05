@@ -1,6 +1,3 @@
-- Shadows
 - Fog
-- Change plane model?
 - Some GUI controls
-- Change camera with C in a loop
 - Homemade texture

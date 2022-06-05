@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Launch index.html",
-            "type": "firefox",
+            "type": "chrome",
             "request": "launch",
             "reAttach": true,
             "file": "${workspaceFolder}/index.html"
