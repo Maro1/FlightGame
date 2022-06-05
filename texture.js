@@ -139,7 +139,7 @@ class ShadowMap
 
   #init(size) {
     this.depthTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, size, size, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);

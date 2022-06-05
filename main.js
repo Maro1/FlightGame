@@ -29,13 +29,16 @@ function init()
 
     scene = new Scene();
 
-    var terrain = scene.addActorFromModel("data/terrain/terrain.obj");
-    terrain.scale(10, 10, 10);
-    terrain.translate(0.0, -50.0, 0.0);
+    var terrain = scene.addActorFromModel("data/lanscape/landscape.obj");
+    terrain.scale(300, 300, 300);
+    terrain.translate(0.0, -1.8, 0.0);
 
     var water = scene.addActorFromModel("data/water/water.obj");
-    water.scale(3000, 1000, 4000);
-    water.translate(-0.2, -0.55, 0.0);
+    water.scale(9000, 9000, 9000);
+    water.translate(0.0, 0, 0.0);
+
+    scene.airplane.plane.translate(0, 100, -5000);
+    scene.airplane.plane.scale(0.1, 0.1, 0.1);
 }
 
 function run(now)
@@ -45,15 +48,9 @@ function run(now)
     }
     var dt = now - prev_time; 
 
+    let options = guiOptions();
     scene.update(dt);
-    scene.draw();
-
-    //shadowMap.draw(actors);
-
-    //airplane.update(dt);
-    //terrain.update(dt);
-    //water.update(dt);
-
+    scene.draw(options);
 
     prev_time = now;
     window.requestAnimationFrame(run); 

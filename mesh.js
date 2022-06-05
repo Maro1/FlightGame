@@ -17,6 +17,14 @@ class Mesh {
             gl.enableVertexAttribArray(2);
             gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
 
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentsBuffer)
+            gl.enableVertexAttribArray(3);
+            gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentsBuffer)
+            gl.enableVertexAttribArray(4);
+            gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
             gl.drawArrays(gl.TRIANGLES, 0, this.mesh.nface * 3);
         }
@@ -39,6 +47,8 @@ class Mesh {
         var normals = [];
         var texCoords = [];
         var positions = [];
+        var tangents = [];
+        var bitangents = [];
 
         for (let i = 0; i < this.mesh.nvert; i++) {
             x[i] = this.mesh.vert[i + 1].x;
@@ -64,17 +74,43 @@ class Mesh {
                 normals.push(this.mesh.facetnorms[i + 1].k);
             }
 
+            // Edges used for tangent/bitangent
+            let e1 = [x[i1] - x[i0], y[i1] - y[i0], z[i1] - z[i0]];
+            let e2 = [x[i2] - x[i0], y[i2] - y[i0], z[i2] - z[i0]];
+
             i0 = this.mesh.face[i + 1].textCoordsIndex[0] - 1;
             i1 = this.mesh.face[i + 1].textCoordsIndex[1] - 1;
             i2 = this.mesh.face[i + 1].textCoordsIndex[2] - 1;
             texCoords.push(xt[i0], yt[i0], xt[i1], yt[i1], xt[i2], yt[i2]);
+
+            // Tangent and bitangent calculation
+            let dUV1 = [xt[i1] - xt[i0], yt[i1] - y[i0]];
+            let dUV2 = [xt[i2] - xt[i0], yt[i2] - y[i0]];
+
+            let f = 1.0 / (dUV1[0] * dUV2[1] - dUV2[0] * dUV1[1]);
+
+            let tx = f * (dUV2[1] * e1[0] - dUV1[1] * e2[0]);
+            let ty = f * (dUV2[1] * e1[1] - dUV1[1] * e2[1]);
+            let tz = f * (dUV2[1] * e1[2] - dUV1[1] * e2[2]);
+
+            let btx = f * (-dUV2[0] * e1[0] + dUV1[0] * e2[0]);
+            let bty = f * (-dUV2[0] * e1[1] + dUV1[0] * e2[1]);
+            let btz = f * (-dUV2[0] * e1[2] + dUV1[0] * e2[2]);
+
+            tangents.push(tx, ty, tz);
+            tangents.push(tx, ty, tz);
+            tangents.push(tx, ty, tz);
+            bitangents.push(btx, bty, btz);
+            bitangents.push(btx, bty, btz);
+            bitangents.push(btx, bty, btz);
         }
+
+
 
         // Vertex position buffer
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
         gl.enableVertexAttribArray(0);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
@@ -82,7 +118,6 @@ class Mesh {
         this.normalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-
         gl.enableVertexAttribArray(1);
         gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
 
@@ -90,9 +125,22 @@ class Mesh {
         this.texCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-
         gl.enableVertexAttribArray(2);
         gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+
+        // Vertex tangents buffer
+        this.tangentsBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentsBuffer)
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tangents), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(3);
+        gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
+
+        // Vertex bitangents buffer
+        this.bitangentsBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentsBuffer)
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bitangents), gl.STATIC_DRAW);
+        gl.enableVertexAttribArray(4);
+        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
     }
 }
 
@@ -105,31 +153,34 @@ class Model {
 
     #loadTextures(filepath) {
         var texturePath = filepath.substring(0, filepath.indexOf(".obj"));
+
         var diffuse_texture = new Texture(texturePath.concat("_diffuse.png"), gl.TEXTURE_2D);
         var specular_texture = new Texture(texturePath.concat("_specular.png"), gl.TEXTURE_2D);
+        var normal_texture = new Texture(texturePath.concat("_normal.png"), gl.TEXTURE_2D);
 
-        return [diffuse_texture, specular_texture];
+        return [diffuse_texture, specular_texture, normal_texture];
     }
 
-    draw() {
-        var diffuseLocation = gl.getUniformLocation(shaderProgram, "diffuseMap");
-        var specularLocation = gl.getUniformLocation(shaderProgram, "specularMap");
-        var skyboxLocation = gl.getUniformLocation(shaderProgram, "skybox");
+    draw(shadowMap) {
+        if (!shadowMap) {
+            var diffuseLocation = gl.getUniformLocation(shaderProgram, "diffuseMap");
+            var specularLocation = gl.getUniformLocation(shaderProgram, "specularMap");
+            var normalLocation = gl.getUniformLocation(shaderProgram, "normalMap");
 
-        gl.uniform1i(diffuseLocation, 0);
-        gl.uniform1i(specularLocation, 1);
-        gl.uniform1i(skyboxLocation, 2);
+            gl.uniform1i(diffuseLocation, 0);
+            gl.uniform1i(specularLocation, 1);
+            gl.uniform1i(normalLocation, 2);
 
-        gl.activeTexture(gl.TEXTURE0);
-        this.textures[0].bind();
+            gl.activeTexture(gl.TEXTURE0);
+            this.textures[0].bind();
 
-        gl.activeTexture(gl.TEXTURE1);
-        this.textures[1].bind();
+            gl.activeTexture(gl.TEXTURE1);
+            this.textures[1].bind();
 
-        if (scene.skybox.texture != undefined) {
             gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, scene.skybox.texture);
+            this.textures[2].bind();
         }
+
         this.mesh.draw();
     }
 }
@@ -180,6 +231,10 @@ class Actor
         this.transform[14] = z;
     }
 
+    position() {
+        return [this.transform[12], this.transform[13], this.transform[14]];
+    }
+
     translate(dX, dY, dZ) {
         this.transform = m4.translate(this.transform, dX, dY, dZ);
     }
@@ -192,15 +247,15 @@ class Actor
         this.transform = m4.axisRotate(this.transform, axis, angle);
     }
 
-    draw() {
+    draw(shader, shadowMap) {
         if (this.model != undefined) {
             var invModel = m4.inverse(this.worldTransform());
             var transInvModel = m4.transpose(invModel);
 
-            gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "model"), false, this.worldTransform());
-            gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "transInvModel"), false, transInvModel);
+            gl.uniformMatrix4fv(gl.getUniformLocation(shader, "model"), false, this.worldTransform());
+            gl.uniformMatrix4fv(gl.getUniformLocation(shader, "transInvModel"), false, transInvModel);
 
-            this.model.draw();
+            this.model.draw(shadowMap);
         }
     }
 

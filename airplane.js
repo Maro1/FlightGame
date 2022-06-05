@@ -65,8 +65,8 @@ class Airplane {
         this.plane.update();
     }
 
-    draw() {
-        this.plane.draw();
-        this.propeller.draw();
+    draw(shader, shadowMap) {
+        this.plane.draw(shader, shadowMap);
+        this.propeller.draw(shader, shadowMap);
     }
 }
