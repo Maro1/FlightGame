@@ -13,10 +13,13 @@ class Camera extends Actor {
 
         this.aspect = aspect;
 
-        this.lookSpeed = 0.002;
+        this.lookSpeed = 0.02;
         this.firstMove = true;
 
-        this.angle = 0;
+        this.cameraAngle = 0;
+
+        this.phi = 0;
+        this.D = 3;
 
         document.addEventListener("keydown", (e) => {
             keys[e.key] = true;
@@ -33,7 +36,16 @@ class Camera extends Actor {
     }
 
     viewMatrix() {
-        return m4.inverse(this.worldTransform());
+        if (g_options.OrbitMode) {
+            let eye = [this.D*Math.sin(this.phi), 
+                        1,
+                        this.D*Math.cos(this.phi)];
+
+            return m4.inverse(m4.lookAt(m4.addVectors(eye, scene.airplane.plane.position()), scene.airplane.plane.position(), [0, 1, 0]));
+        } 
+        else {
+            return m4.inverse(this.worldTransform());
+        }
     }
 
     projMatrix() {
@@ -41,11 +53,12 @@ class Camera extends Actor {
     }
 
     nextView() {
-        this.transform = CAMERA_ANGLES[++this.angle % CAMERA_ANGLES.length];
+        this.transform = CAMERA_ANGLES[++this.cameraAngle % CAMERA_ANGLES.length];
+        console.log(this.transform);
     }
 
     keyDown(key) {
-        if (key == "c") {
+        if (key == "c" && !g_options.OrbitMode) {
             this.nextView();
         }
     }
@@ -56,23 +69,11 @@ class Camera extends Actor {
         }
         if (this.firstMove) {
             this.firstMove = false;
-            this.angle = 0;
-            this.prevX = e.offsetX;
+            this.prevX = e.pageX;
         }
-        let dX = (this.prevX - e.offsetX) * this.lookSpeed;
-        this.angle += dX;
-        let up = [0, 1, 0];
+        let dX = (this.prevX - e.pageX) * this.lookSpeed;
 
-        //let newPos = scalarMul((1 - Math.cos(dX)) * (m4.dot(this.position(), up)), m4.addVectors(up, scalarMul(Math.cos(dX), m4.addVectors(this.position(), scalarMul(Math.sin(dX), m4.cross(up, this.position()))))));
-        let v = (m4.subtractVectors(this.position(), [0, 0, 0]));
-        let r = Math.sqrt(v[0] * v[0], v[1] * v[1], v[2] * v[2]);
-        let x_new = 10 * Math.sin(this.angle); 
-        let z_new = -10 * Math.sin(this.angle); 
-
-        this.setPosition(x_new, 0, z_new);
-
-        this.rotate([0, 1, 0], dX);
-
-        this.prevX = e.offsetX;
+        this.phi += dX;
+        this.prevX = e.pageX;
     }
 }

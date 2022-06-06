@@ -11,6 +11,11 @@ var g_options = {
     FogAmount: 0.5,
     FOV: 45,
     OrbitMode: false,
+    LightDirectionX: 1,
+    LightDirectionY: 1,
+    LightDirectionZ: 1,
+    LightColor: "#ffcccc",
+    LightIntensity: 0.003
 }
 
 function makeGUI() {
@@ -21,6 +26,11 @@ function makeGUI() {
     gui.add(g_options, "FogAmount", 0.0, 1);
     gui.add(g_options, "FOV");
     gui.add(g_options, "OrbitMode");
+    gui.add(g_options, "LightDirectionX");
+    gui.add(g_options, "LightDirectionY");
+    gui.add(g_options, "LightDirectionZ");
+    gui.addColor(g_options, "LightColor");
+    gui.add(g_options, "LightIntensity", 0, 0.01);
 }
 
 var scene;

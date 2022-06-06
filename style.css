@@ -1,0 +1,28 @@
+.control-box {
+    position: absolute;
+    left: 2%;
+    top: 5%;
+    width: 10vw;
+    height: 12vh;
+    background-color: rgb(77, 77, 77);
+    box-shadow: 5px 10px rgba(50, 50, 50, 50);
+
+}
+
+.control-text {
+    color: white;
+    margin: 5%;
+    font-family: "Work Sans", sans-serif;
+}
+
+.hide-controls {
+    margin-top: 2%;
+    background: #FFFFFF;
+    border: none;
+    border-radius: .4em;
+    font-family: "Work Sans", sans-serif;
+}
+
+canvas {
+    border: 1px solid gray;
+}

@@ -9,8 +9,9 @@ class Scene
         this.airplane.plane.addChild(this.camera);
         this.shadowMap = new ShadowMap(2048);
 
-        this.lightDir = [0.53, 0.76, -0.37];
-        this.lightPos = [-5300, 7600, 3700];
+        this.lightDir = [0, 1, 0];
+        this.lightPos = [0, 2000, 0];
+
 
         this.shadowShader = webglUtils.createProgramFromScripts(gl, ["shadow-vs", "shadow-fs"]);
     }
@@ -63,9 +64,18 @@ class Scene
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "view"), false, this.camera.viewMatrix());
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "proj"), false, this.camera.projMatrix());
             gl.uniform3f(gl.getUniformLocation(shaderProgram, "viewPos"), this.camera.worldPos()[0], this.camera.worldPos()[1], this.camera.worldPos()[2]);
-            gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightDir"), this.lightDir[0], this.lightDir[1], this.lightDir[2]);
 
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "lightSpaceMatrix"), false, lightSpace);
+
+            gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightDir"), g_options.LightDirectionX, g_options.LightDirectionY, g_options.LightDirectionZ);
+
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(g_options.LightColor);
+            var r= parseInt(result[1], 16);
+            var g= parseInt(result[2], 16);
+            var b= parseInt(result[3], 16);
+            gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightColor"), r, g, b);
+            gl.uniform1f(gl.getUniformLocation(shaderProgram, "lightIntensity"), g_options.LightIntensity);
+            console.log(g_options.LightIntensity);
 
             if (g_options.Shadows) {
                 gl.uniform1i(gl.getUniformLocation(shaderProgram, "useShadows"), 1);
