@@ -71,6 +71,7 @@ class Camera extends Actor {
             this.firstMove = false;
             this.prevX = e.pageX;
         }
+
         let dX = (this.prevX - e.pageX) * this.lookSpeed;
 
         this.phi += dX;

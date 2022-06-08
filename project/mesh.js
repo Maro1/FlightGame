@@ -105,42 +105,30 @@ class Mesh {
             bitangents.push(btx, bty, btz);
         }
 
-
-
         // Vertex position buffer
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(0);
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
 
         // Vertex normal buffer 
         this.normalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(1);
-        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
 
         // Vertex texcoord buffer 
         this.texCoordBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(2);
-        gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
 
         // Vertex tangents buffer
         this.tangentsBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.tangentsBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tangents), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(3);
-        gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 0, 0);
 
         // Vertex bitangents buffer
         this.bitangentsBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.bitangentsBuffer)
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bitangents), gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(4);
-        gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 0, 0);
     }
 }
 

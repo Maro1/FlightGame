@@ -9,8 +9,8 @@ class Scene
         this.airplane.plane.addChild(this.camera);
         this.shadowMap = new ShadowMap(2048);
 
-        this.lightDir = [0, 1, 0];
-        this.lightPos = [0, 2000, 0];
+        this.lightDir = [1, 1, 1];
+        this.lightPos = [5000, 5000, 5000];
 
 
         this.shadowShader = webglUtils.createProgramFromScripts(gl, ["shadow-vs", "shadow-fs"]);
@@ -27,12 +27,18 @@ class Scene
     update(dt) {
         this.airplane.update(dt);
         this.actors.forEach(a => a.update(dt));
+        this.lightDir = [g_options.LightDirectionX, g_options.LightDirectionY, g_options.LightDirectionZ];
 
-        this.lightPos = [this.airplane.plane.position()[0], this.lightPos[1], this.airplane.plane.position()[2]];
+        // Have light follow airplane since only airplane casts shadow, 
+        // and only direction is used for lighting calculation
+        this.lightPos = this.airplane.plane.position();
+        this.lightPos = m4.addVectors(this.lightPos, [this.lightDir[0] * 200, this.lightDir[1] * 200, this.lightDir[2] * 200]);
     }
 
     draw() {
         if (g_options.Shadows) {
+            // For shadow map draw, cull front face instead of back face
+            // because of the use of a bias, which decreases the shadow offset
             gl.cullFace(gl.FRONT);
             this.shadowMap.bind();
             this.#draw(true);
@@ -47,9 +53,9 @@ class Scene
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.enable(gl.DEPTH_TEST);
 
-        let lightView = m4.inverse(m4.lookAt(this.lightPos, this.airplane.plane.position(), [0, 0, 1]));
+        let lightView = m4.inverse(m4.lookAt(this.lightPos, this.airplane.plane.position(), [0, 1, 0]));
 
-        let lightProj = m4.orthographic(-2, 2, -2, 2, 0.01, 10000);
+        let lightProj = m4.orthographic(-2, 2, -2, 2, 0.01, 20000);
         let lightSpace = m4.multiply(lightProj, lightView);
 
         if (shadowMap) {
@@ -61,21 +67,21 @@ class Scene
         }
         else {
             gl.useProgram(shaderProgram);
+
+            /* Update per-draw uniforms */
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "view"), false, this.camera.viewMatrix());
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "proj"), false, this.camera.projMatrix());
             gl.uniform3f(gl.getUniformLocation(shaderProgram, "viewPos"), this.camera.worldPos()[0], this.camera.worldPos()[1], this.camera.worldPos()[2]);
-
             gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, "lightSpaceMatrix"), false, lightSpace);
+            gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightDir"), this.lightDir[0], this.lightDir[1], this.lightDir[2]);
 
-            gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightDir"), g_options.LightDirectionX, g_options.LightDirectionY, g_options.LightDirectionZ);
-
+            // Color is given as hex string, convert to rgb
             var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(g_options.LightColor);
             var r= parseInt(result[1], 16);
             var g= parseInt(result[2], 16);
             var b= parseInt(result[3], 16);
             gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightColor"), r, g, b);
             gl.uniform1f(gl.getUniformLocation(shaderProgram, "lightIntensity"), g_options.LightIntensity);
-            console.log(g_options.LightIntensity);
 
             if (g_options.Shadows) {
                 gl.uniform1i(gl.getUniformLocation(shaderProgram, "useShadows"), 1);
@@ -103,13 +109,7 @@ class Scene
                 gl.uniform1f(gl.getUniformLocation(shaderProgram, "fogAmount"), 0.0);
             }
 
-            this.actors.forEach(function(a){
-                a.draw(shaderProgram, false);
-            });
-            
-            this.airplane.draw(shaderProgram, false);
-
-
+            // Skybox cubemap texture has index 4
             var skyboxLocation = gl.getUniformLocation(shaderProgram, "skybox");
             gl.uniform1i(skyboxLocation, 4);
 
@@ -118,6 +118,12 @@ class Scene
                 gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.skybox.texture);
             }
 
+            // Draw all non-airplane actors
+            this.actors.forEach(function(a){
+                a.draw(shaderProgram, false);
+            });
+            
+            this.airplane.draw(shaderProgram, false);
             this.skybox.draw(this.camera.viewMatrix(), this.camera.projMatrix());
         }
 

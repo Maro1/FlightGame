@@ -2,8 +2,8 @@
     position: absolute;
     left: 2%;
     top: 5%;
-    width: 10vw;
-    height: 12vh;
+    width: fit-content;
+    height: fit-content;
     background-color: rgb(77, 77, 77);
     box-shadow: 5px 10px rgba(50, 50, 50, 50);
 

@@ -1,0 +1,113 @@
+<html>
+<title>Project Report</title>
+
+<head>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <h1>Computer Graphics Project Report</h1>
+    <h4>by Mathias Rønning</h4>
+
+    <div class="section">
+        <h2>Introduction</h2>
+        <p>
+            The purpose of this project is to develop an interactive 3D-app using HTML5, CSS and WebGL.
+            My choice of app is a 3D flight game, where the player controls an airplane flying over an
+            island in the ocean. The player is able to control the airplane's roll, pitch and speed, and
+            there are several provided controls to change parameters of the environment like fog, lighting
+            and camera. An in-game image is shown below.
+        </p>
+        <figure>
+            <img src="images/1.png" width="100%">
+            <figcaption>Figure 1: Image captured in-game</figcaption>
+        </figure>
+        <p>
+            The application has been tested both on Linux and Windows with the browsers Firefox and Chrome.
+            In addition, some touch controls are provided on mobile platforms to control the plane.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>The Classes</h2>
+        <p>
+            The project has several classes to abstract away common functionality to avoid code
+            duplication. The main classes are:
+        </p>
+        <ul>
+            <li><span class="class-name">Mesh</span></li>
+            <li><span class="class-name">Texture</span></li>
+            <li><span class="class-name">Model</span></li>
+            <li><span class="class-name">Actor</span></li>
+            <li><span class="class-name">Airplane</span></li>
+            <li><span class="class-name">Camera</span></li>
+            <li><span class="class-name">Skybox</span></li>
+            <li><span class="class-name">ShadowMap</span></li>
+            <li><span class="class-name">Scene</span></li>
+        </ul>
+
+        <h3>Mesh</h3>
+        <p>
+            The meshes are handled in the class <span class="class-name">Mesh</span> in <b>mesh.js</b>.
+            All of the meshes are loaded from an OBJ file using the <b>glm_utils.js</b> library provided
+            during class. The mesh data is then processed including vertex positions, texture coordinates,
+            normals, tangents and bitangents. Each of these are contained in a separate WebGL buffer, and
+            the data is uploaded using <code>gl.bufferData</code> for each buffer. The meshes are drawn
+            in the <code>draw()</code> function of the <span class="class-name">Mesh</span> class, using
+            <code>gl.vertexAttribArray</code> and <code>gl.vertexAttribPointer</code> to specify where the
+            vertex data should go and of which format it is for the vertex shader. The function ends with a
+            <code>gl.drawArrays</code> call to draw the vertices of the mesh.
+        </p>
+        <h3>Texture</h3>
+        <p>
+            The <span class="class-name">Texture</span> class in <b>texture.js</b> contains the code for
+            loading a texture from an image file. Upon construction a WebGL texture is created and initially
+            set to black using <code>gl.texImage2D</code>, before loading the image and specifying that as
+            the texture and generating mipmaps.
+        </p>
+        <h3>Model</h3>
+        <p>
+            The <span class="class-name">Model</span> class in <b>mesh.js</b> binds together a single mesh
+            with several textures. Each <span class="class-name">Model</span> has a diffuse, specular and
+            normal texture. The effects of these are further discussed in the "Lighting and Advanced Rendering"
+            section.
+        </p>
+        <h3>Actor</h3>
+        <p>
+            The <span class="class-name">Actor</span> class in <b>mesh.js</b> is the main class for objects
+            in the scene, and can contain a model or not. The class contains a <code>transform</code> field,
+            which is used to transform the object from object space to world space and is the <code>model</code>
+            matrix of the vertex shader. In addition the actor class provides possibility for a hierarchy, where
+            each level of the hierarchy tree applies its transform.
+        </p>
+        <h3>Airplane</h3>
+        <p>
+            The <span class="class-name">Airplane</span> class in <b>airplane.js</b> is the class containing
+            the airplane logic. It contains two actors; the plane and the propeller, where the propeller is a
+            child of the plane in the actor hierarchy. Each tick the plane transform is updated with regards to
+            user input (further discussed in "Controls and Input") and its speed, and the propeller is rotated
+            with regards to the speed.
+        </p>
+        <h3>Camera</h3>
+        <p>
+            The <span class="class-name">Camera</span> class in <b>camera.js</b> extends the
+            <span class="class-name">Actor</span> class and contains the camera logic. The
+            camera instance is a child of the plane actor as to follow the plane. The class
+            has functions for calculating the <code>view</code> and <code>projection</code>
+            matrices, where <code>view</code> is calculated from the inverse of the camera
+            transform and <code>projection</code> is calculated using the <b>m4.js</b> library
+            perspective projection function.
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>Controls and Input</h2>
+    </div>
+
+    <div class="section">
+        <h2>Lighting and Advanced Rendering</h2>
+    </div>
+</body>
+
+</html>

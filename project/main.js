@@ -33,6 +33,51 @@ function makeGUI() {
     gui.add(g_options, "LightIntensity", 0, 0.01);
 }
 
+/* Touch controls */
+var touchStarted = false;
+
+function touchStart(e) {
+    if(e.touches) {
+        x = e.touches[0].pageX - canvas.offsetLeft;
+        y = e.touches[0].pageY - canvas.offsetTop;
+
+        if (g_options.OrbitMode) {
+            touchStarted = true;
+            return;
+        }
+
+        if (x < canvas.width / 4) {
+            keys["a"] = true;
+        }
+        if (x > 3 * (canvas.width / 4)) {
+            keys["d"] = true;
+        }
+        if (y < canvas.height / 4) {
+            keys["w"] = true;
+        }
+        if (y > 3 * (canvas.height / 4)) {
+            keys["s"] = true;
+        }
+
+        e.preventDefault();
+    }
+}
+
+function touchMove(e) {
+    if (touchStarted) {
+        e.pageX = e.touches[0].pageX;
+        scene.camera.mouseMoved(e);
+    }
+}
+
+function touchEnd(e) {
+    touchStarted = false; 
+    for (i in keys) {
+        keys[i] = false;
+    }
+}
+
+
 var scene;
 var shaderProgram;
 var prev_time = 0;
@@ -43,6 +88,10 @@ function init()
     canvas = document.getElementById("main_canvas");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    canvas.addEventListener("touchstart", touchStart);
+    canvas.addEventListener("touchmove", touchMove);
+    canvas.addEventListener("touchend", touchEnd);
 
     gl = canvas.getContext("webgl");
 
