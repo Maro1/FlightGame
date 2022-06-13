@@ -37,6 +37,7 @@ class Camera extends Actor {
 
     viewMatrix() {
         if (g_options.OrbitMode) {
+            // Orbit around airplane when in orbit mode
             let eye = [this.D*Math.sin(this.phi), 
                         1,
                         this.D*Math.cos(this.phi)];
@@ -54,7 +55,6 @@ class Camera extends Actor {
 
     nextView() {
         this.transform = CAMERA_ANGLES[++this.cameraAngle % CAMERA_ANGLES.length];
-        console.log(this.transform);
     }
 
     keyDown(key) {

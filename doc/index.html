@@ -99,14 +99,207 @@
             transform and <code>projection</code> is calculated using the <b>m4.js</b> library
             perspective projection function.
         </p>
+        <h3>Scene</h3>
+        <p>
+            The <span class="class-name">Scene</span> class in <b>scene.js</b> contains the code
+            for updating and rendering all the actors in the scene, also updating the common uniforms
+            among all objects such as light position and camera matrices.
+        </p>
     </div>
 
     <div class="section">
-        <h2>Controls and Input</h2>
+        <h2>Controls and User Input</h2>
+        <p>
+            The application has input controls for controlling various aspects of the application. The
+            airplane can be controlled using the WASD keys, where W and S controls the pitch, and A and D
+            the roll. This is done by checking for keys pressed each tick and updating the rotation of the
+            airplane actor accordingly (<code>update</code> function of <b>airplane.js</b>). There is an amortization
+            constant multiplied with the speed when no input is provided to make the rotation come to a stop smoothly
+            and not instantly. On mobile an alternative input scheme is provided, where touching the sides of the
+            screen rotates the plane in that direction (right and left sides control roll and up and down pitch).
+            This is implemented in the <code>touch*</code> functions in <b>main.js</b> The + and - keys can be used 
+            to control the airplane speed, where the airplane is translated along is direction depending on the speed. 
+            In addition, the camera angle can be adjusted according to pre-defined presets by pressing the C key, 
+            changing the camera transform matrix.
+        </p>
+        <p>
+            The application also contains a GUI for adjusting various aspects of the environment as seen in Figure 2. 
+            This includes light parameters as well as toggling the advanced rendering techniques. In addition there 
+            is a "Orbit Mode" toggle that, upon toggling, changes the input scheme. When enabled, the mouse (or touch on mobile) 
+            controls the camera in an orbit fashion around the world Y axis, with the airplane as the orbit center. While in orbit 
+            mode, the camera view matrix is calculated from an angle and distance (<code>viewMatrix()</code> in <b>camera.js</b>)
+            instead of the camera transform to make the orbit calculation simpler.
+        </p>
+        <figure>
+            <img src="images/2.png" width="50%">
+            <figcaption>Figure 2: The GUI controls.</figcaption>
+        </figure>
     </div>
 
     <div class="section">
         <h2>Lighting and Advanced Rendering</h2>
+        <p>
+            The scene contains a single directional light for lighting the scene in addition to using environment mapping 
+            with a skybox for the specular component. In addition some more advanced rendering techniques have been 
+            implemented incluing shadows, normal mapping and fog. The main object lighting calculation is done in the 
+            <code>fragment-shader</code> script in <b>index.html</b>, being a GLSL shader.
+        </p>
+        <h3>Directional Lighting</h3>
+        <p>
+            The directional light has a direction, color and intensity controllable from the GUI. The direction is given 
+            as the direction from the origin to the lighting instead of the other way around since this vector is used for 
+            the diffuse calculation. For each object, the lighting calculation is based on the Phong model, having an ambient, 
+            diffuse and specular component. The color of the object is taken from its diffuse texture map. This is multiplied 
+            by a constant to provide the ambient component. For the diffuse component, the color is multiplied by the dot product 
+            between the light direction and the surface normal, since larger angles should give lower diffuse (and maxed with 0 
+            to avoid negative values). This is then multiplied by the light color and intensity. 
+        </p>
+        <figure>
+            <img src="images/3.png" width="40%">
+            <figcaption>Figure 3: The airplane diffuse texture.</figcaption>
+        </figure>
+        <p>
+            For the specular component, the specular texture is used for the object value instead of the diffuse texture, 
+            where the specular texture is a grayscale texture where higher values means higher specular and lower values lower 
+            specular. This means the specular can vary on an object, giving a better result on objects with many "materials" such as 
+            the airplane (glass, metal, paint). The specular component is calculated by multiplying by the dot product between the 
+            surface viewing direction and the surface light reflection direction, since when these two vectors coincide the specular 
+            highlight should be higher. By raising this value to a power the size of the specular highlight can be changed (where higher 
+            values give smaller highlights and make the object look "shinier"). For this project the dot product is raised to the constant 
+            power of 16, since textures are used instead of for example OBJ materials. The specular is then multiplied by light color 
+            and intensity, in addition to a reflection component based on skybox environment mapping.
+        </p>
+        <figure>
+            <img src="images/4.png" width="40%">
+            <figcaption>Figure 4: The airplane specular texture.</figcaption>
+        </figure>
+        <h3>Skybox and Environment Mapping</h3>
+        <p>
+            The scene contains a skybox drawn from a cubemap texture containing 6
+            different textures as shown in figure 5, where each texture corresponds
+            to a different face direction. The cubemap texture is set up in the 
+            <span class="class-name">Skybox</span> class in <b>texture.js</b>. In
+            the <code>#init()</code> function all the 6 texture images are 
+            loaded and stored as the correct cubemap texture using <code>gl.texImage2D</code>
+            and mipmaps are generated. Following this, a vertex buffer containing the 
+            positions of a quad filling the whole canvas is set up to draw the cubemap
+            onto.
+        </p>
+        <figure>
+            <img src="images/5.png" width="100%">
+            <figcaption>Figure 5: The cubemap textures.</figcaption>
+        </figure>
+        <p>
+            The skybox is drawn in the <code>draw()</code> function of the 
+            <span class="class-name">Skybox</span> class. This uses the shaders 
+            <code>skybox-vs</code> and <code>skybox-fs</code> from <b>index.html</b>.
+            The depth function is set to <code>gl.LEQUAL</code> before drawing since
+            the Z values of the quad vertices are all set to 1.0 (as to draw them 
+            behind everything else). The inverse of the <code>projection * view</code>
+            matrix with 0 translation is sent to the fragment shader as a uniform. 
+            This matrix is then used to sample from the cubemap, by multiplying it 
+            with the fragment position to go from screen space to world space (since 
+            fragment positions are in screen space).
+        </p>
+        <p>
+            In addition to drawing the skybox, the cubemap texture is used for 
+            environment mapping. In the main fragment shader <code>fragment-shader</code>
+            used for the objects, the specular component has a term consisting of the 
+            cubemap sample from the reflection of the viewing direction along the normal,
+            creating a reflection effect.
+        </p>
+        <h3>Shadows</h3>
+        <p>
+            The airplane model of the scene is the only objects that casts shadows.
+            The reasoning behind this is that the scene is very large, and that the 
+            camera always follows the airplane. Because the scene is large, either multiplie
+            shadow maps or a <b>very</b> high resolution one would have to be used to cast
+            shadows on the whole scene with decent results. Instead, since there is only
+            a single directional light, the position of the "light camera" creating the 
+            shadow map is calculated by going in the light direction from the airplane position 
+            (see <code>update()</code> in <b>scene.js</b>).
+        </p>
+        <p>
+            The shadow map is created in the <code>#init()</code> function in the 
+            <span class="class-name">ShadowMap</span> class in <b>texture.js</b>.
+            This creates a separate framebuffer and sets up a depth texture which the
+            uses as a depth attachment, such that when the framebuffer is drawn to, the
+            depth component is stored to the texture. 
+        </p>
+        <p>
+            When drawing the scene in the <code>draw()</code> function in <b>scene.js</b>,
+            the scene is drawn twice, the first being to the shadow map. During the shadow 
+            map draw call, the culling is set to the front faces to minimize the offset created
+            by the bias (which is discussed in the following paragraph). The draw call uses 
+            separate shaders, <code>shadow-vs</code> and <code>shadow-fs</code>, where the 
+            fragment shader is just used to avoid warnings (since only depth component is 
+            of interest). The vertex shader contains the <code>lightSpaceMatrix</code> uniform
+            which transforms from world space to the light space using an orthographic projection
+            (being a directional light).
+        </p>
+        <figure>
+            <img src="images/6.png" width="50%">
+            <figcaption>Figure 6: The airplane with its shadow.</figcaption>
+        </figure>
+        <p>
+            During the second draw call that actually draws the objects, the shadow map depth
+            texture is used (assuming shadows are enabled). In the <code>fragment-shader</code>
+            shader, this texture is used to calculate whether a fragment is in shadow in the
+            <code>shadow()</code> function. This checks whether the depth of the 
+            fragment from the shadow map (which is either the fragment depth or a blocking 
+            fragments depth) is less than the current fragment depth. If it is, the fragment
+            is in shadow and 0.0 is returned. A very small bias is added to avoid black lines
+            as a result of multiple fragments sampling the same shadow map value. This has 
+            the small disadvantage of offseting the shadow by a small amount.
+        </p>
+        <h3>Normal Mapping</h3>
+        <p>
+            In addition to the diffuse and specular textures, each object also has a
+            normal map texture. This texture provides the normal for the fragments, 
+            where r, g and b correspond to x, y, z of the normal vector. However, since
+            this normal is relative to the normal of the face, it has to be transformed 
+            from the tangent space of the face to world space. This is done through the 
+            TBN matrix, consisting of a normal, tangent and bitangent vector, that are 
+            perpendicular and form a basis for the tangent space. The normal is provided 
+            by the <b>glmUtils.js</b> library, however the tangent and bitangent are 
+            calculated in the <code>#initMesh()</code> function of <span class="class-name">Mesh</span>. 
+            Once these are calculated, the TBN matrix can be calculated in the vertex shader by providing 
+            the unit vectors as colums of the matrix. In the fragment shader, the normal can then be 
+            calculated by sampling from the normal map and then multipying by the TBN matrix to provide
+            the correct normal in world space. The normal is multiplied by 2 and subtracted 1 since
+            the normalMap is in [0, 1] while the normal vector should be in [-1, 1].
+        </p>
+        <figure>
+            <img src="images/7.png" width="40%">
+            <figcaption>Figure 7: The landscape normal map.</figcaption>
+        </figure>
+        <h3>Fog</h3>
+        <p>
+            The fog effect is created by mixing the fragment color with a fog color based on
+            the distance to the fragment. For the mesh objects, this is done in <code>fragment-shader</code>
+            using the <code>smoothstep</code> function to interpolate between two values based on the distance.
+            Since the skybox is not a mesh but still needs a fog effect for the fog to look convincing, the
+            <code>skybox-fs</code> shader mixes the fog color based on the Y-coordinate of the inverted 
+            <code>projection * view</code> matrix such that the fog is stronger when Y is closer to 0.
+        </p>
+        <figure>
+            <img src="images/8.png" width="80%">
+            <figcaption>Figure 8: High fog amount makes landscape invisble.</figcaption>
+        </figure>
+    </div>
+    <div class="section">
+        <h2>Model/Texture Sources</h2>
+        <p>
+            The models and textures used are sourced from various sites online, where some have been slightly
+            modified by for example adjusting the levels on textures. In addition, the airplane was originally
+            a single mesh. but was separated using Blender.
+        </p>
+        <ul>
+            <li><a href="https://sketchfab.com/3d-models/plane-low-poly-6f41d5adee2f4c71a3dca8c943829b7f">Airplane</a></li>
+            <li><a href="https://sketchfab.com/3d-models/terrain-nevado-de-colima-mexico-f6f1c8ce7b2942a3ae020840a114ba37">Landscape</a></li>
+            <li><a href="https://unsplash.com/photos/qEswHvOmi1c">Water texture</a></li>
+            <li><a href="https://polyhaven.com/a/qwantani">Skybox</a> </li>
+        </ul>
     </div>
 </body>
 

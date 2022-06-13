@@ -12,7 +12,6 @@ class Scene
         this.lightDir = [1, 1, 1];
         this.lightPos = [5000, 5000, 5000];
 
-
         this.shadowShader = webglUtils.createProgramFromScripts(gl, ["shadow-vs", "shadow-fs"]);
     }
 
@@ -55,6 +54,7 @@ class Scene
 
         let lightView = m4.inverse(m4.lookAt(this.lightPos, this.airplane.plane.position(), [0, 1, 0]));
 
+        // Orthographics projection for light shadow map
         let lightProj = m4.orthographic(-2, 2, -2, 2, 0.01, 20000);
         let lightSpace = m4.multiply(lightProj, lightView);
 
@@ -83,6 +83,7 @@ class Scene
             gl.uniform3f(gl.getUniformLocation(shaderProgram, "lightColor"), r, g, b);
             gl.uniform1f(gl.getUniformLocation(shaderProgram, "lightIntensity"), g_options.LightIntensity);
 
+            // Only set shadow map if using shadows 
             if (g_options.Shadows) {
                 gl.uniform1i(gl.getUniformLocation(shaderProgram, "useShadows"), 1);
                 var shadowMapLocation = gl.getUniformLocation(shaderProgram, "shadowMap");

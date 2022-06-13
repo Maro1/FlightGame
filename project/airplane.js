@@ -16,7 +16,9 @@ class Airplane {
         this.propeller.model = this.propeller_model;
         this.plane.addChild(this.propeller)
 
+        // Plane and propeller both centered in origin, translate propeller
         this.propeller.translate(0.0, 0.11, 0.67);
+
         this.speed = 1.0;
         this.turnRollSpeed = 0.0;
         this.turnPitchSpeed = 0.0;
@@ -28,6 +30,7 @@ class Airplane {
     update(deltaTime) {
         const amortization = 0.96;
 
+        // Rotate propeller around object Z axis
         this.propeller.rotate([0.0, 0.0, 1.0], deltaTime * this.speed * 0.01);
 
         if (keys["+"] && this.speed < MAX_SPEED) {
@@ -54,12 +57,15 @@ class Airplane {
             this.turnPitchSpeed *= amortization;
         }
 
+        /* Roll */
         if (this.turnRollSpeed != 0) 
             this.plane.rotate([0, 0, 1], this.turnRollSpeed * deltaTime);
         
+        /* Pitch */
         if (this.turnPitchSpeed != 0)
             this.plane.rotate([1, 0, 0], this.turnPitchSpeed * deltaTime);
 
+        // Translate along object Z axis
         this.plane.translate(0, 0, this.speed);
 
         this.plane.update();

@@ -4,6 +4,7 @@ var canvas;
 /** @type {WebGLRenderingContext} */
 var gl;
 
+/* GUI control options */
 var g_options = {
     Shadows: true,
     NormalMap: true,
@@ -46,6 +47,7 @@ function touchStart(e) {
             return;
         }
 
+        /* Control based on where on screen you touch */
         if (x < canvas.width / 4) {
             keys["a"] = true;
         }
@@ -64,6 +66,7 @@ function touchStart(e) {
 }
 
 function touchMove(e) {
+    /* Call mouse moved with x pos if orbit mode */
     if (touchStarted) {
         e.pageX = e.touches[0].pageX;
         scene.camera.mouseMoved(e);
@@ -85,18 +88,19 @@ var keys = {};
 
 function init()
 {
+    /* Setup canvas */
     canvas = document.getElementById("main_canvas");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    /* Touch events */
     canvas.addEventListener("touchstart", touchStart);
     canvas.addEventListener("touchmove", touchMove);
     canvas.addEventListener("touchend", touchEnd);
 
+    /* WebGL viewport and config */
     gl = canvas.getContext("webgl");
-
     gl.getExtension('WEBGL_depth_texture');
-
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.2, 0.2, 0.2, 1.0);
     gl.enable(gl.DEPTH_TEST);
@@ -105,9 +109,10 @@ function init()
     
     shaderProgram = webglUtils.createProgramFromScripts(gl, ["vertex-shader", "fragment-shader"]);
 
+    /* Create scene and add transformed objects */
     scene = new Scene();
 
-    var terrain = scene.addActorFromModel("data/lanscape/landscape.obj");
+    var terrain = scene.addActorFromModel("data/landscape/landscape.obj");
     terrain.scale(300, 300, 300);
     terrain.translate(0.0, -1.8, 0.0);
 

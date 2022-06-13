@@ -5,6 +5,8 @@ class Mesh {
 
     draw() {
         if (this.mesh != undefined) {
+            // Vertex attributes need to be set each draw call 
+            // because of multiple meshes 
             gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
             gl.enableVertexAttribArray(0);
             gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
@@ -83,7 +85,7 @@ class Mesh {
             i2 = this.mesh.face[i + 1].textCoordsIndex[2] - 1;
             texCoords.push(xt[i0], yt[i0], xt[i1], yt[i1], xt[i2], yt[i2]);
 
-            // Tangent and bitangent calculation
+            /* Tangent and bitangent calculation */
             let dUV1 = [xt[i1] - xt[i0], yt[i1] - y[i0]];
             let dUV2 = [xt[i2] - xt[i0], yt[i2] - y[i0]];
 
@@ -142,6 +144,8 @@ class Model {
     #loadTextures(filepath) {
         var texturePath = filepath.substring(0, filepath.indexOf(".obj"));
 
+        // Each model is assumed to have 3 textures with name equal to obj with 
+        // different suffixes
         var diffuse_texture = new Texture(texturePath.concat("_diffuse.png"), gl.TEXTURE_2D);
         var specular_texture = new Texture(texturePath.concat("_specular.png"), gl.TEXTURE_2D);
         var normal_texture = new Texture(texturePath.concat("_normal.png"), gl.TEXTURE_2D);
