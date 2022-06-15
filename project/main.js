@@ -118,7 +118,10 @@ function init()
 
     var water = scene.addActorFromModel("data/water/water.obj");
     water.scale(9000, 9000, 9000);
-    water.translate(0.0, 0, 0.0);
+
+    var cube = scene.addActorFromModel("data/cube/cube.obj");
+    cube.scale(10, 10, 10);
+    cube.translate(0, 5, -450);
 
     scene.airplane.plane.translate(0, 100, -5000);
     scene.airplane.plane.scale(0.5, 0.5, 0.5);
@@ -131,6 +134,7 @@ function run(now)
     }
     var dt = now - prev_time; 
 
+    scene.actors[2].rotate([0, 1, 1], dt * 0.001);
     scene.update(dt);
     scene.draw();
 
